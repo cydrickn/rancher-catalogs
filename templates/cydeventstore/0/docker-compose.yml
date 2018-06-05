@@ -1,0 +1,90 @@
+version: '2'
+volumes:
+    db_data: {}
+services:
+    nginx:
+        image: registry.gitlab.com/cydrickn/event-store/nginx:1.0
+        stdin_open: true
+        tty: true
+        {{- if eq .Values.API_PORT "" }}
+        expose:
+            - 9080
+        {{- else  }}
+        ports:
+            - ${API_PORT}:9080
+        {{- end }}
+        environment:
+            - SERVICE_READ=read
+            - SERVICE_WRITE=write
+        command: /bin/sh -c "envsubst '$${SERVICE_READ},$${SERVICE_WRITE}' < /etc/nginx/conf.d/default.tmp > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+        labels:
+            io.rancher.container.pull_image: always
+            io.rancher.sidekicks: code,write,read
+    code:
+        image: registry.gitlab.com/cydrickn/event-store/code:1.0
+        stdin_open: true
+        tty: true
+        labels:
+            io.rancher.container.pull_image: always
+            io.rancher.container.start_once: 'true'
+    write:
+        image: registry.gitlab.com/cydrickn/event-store/php:1.0
+        stdin_open: true
+        tty: true
+        working_dir: /app/services/write
+        volumes_from:
+            - code
+        labels:
+            io.rancher.container.pull_image: always
+    read:
+        image: registry.gitlab.com/cydrickn/event-store/php:1.0
+        stdin_open: true
+        tty: true
+        working_dir: /app/services/read
+        volumes_from:
+            - code
+        labels:
+            io.rancher.container.pull_image: always
+    projector:
+        image: registry.gitlab.com/cydrickn/event-store/php:1.0
+        stdin_open: true
+        tty: true
+        working_dir: /app/services/projector
+        volumes_from:
+            - code
+        {{- if eq .Values.EXPOSE_PROJECTOR_PORTS "false" }}
+        expose:
+            - 9001
+            - 9002
+        {{- else  }}
+        ports:
+            - ${PROJECTOR_PORT}:9001
+            - ${PROJECTOR_WAMP_PORT}: 9002
+        {{- end }}
+        command: php /app/services/projector/bin/server.php
+        labels:
+            io.rancher.container.pull_image: always
+    {{- if eq .Values.USE_EXTERNAL_DB "false"  }}
+    store:
+        image: mysql:5.7
+        environment:
+            MYSQL_USER: ${DB_USER}
+            MYSQL_PASSWORD:  ${DB_PASSWORD}
+            MYSQL_DATABASE: ${DB_NAME}
+            MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+        volumes:
+            - db_data:/var/lib/mysql
+    {{- end }}
+    swaggerui:
+        image: swaggerapi/swagger-ui
+        volumes:
+            - ./services/webui:/app
+        {{- if eq .Values.SWAGGER_PORT "" }}
+        expose:
+            - 8080
+        {{- else  }}
+        ports:
+            - ${SWAGGER_PORT}:8080
+        {{- end }}
+        environment:
+            SWAGGER_JSON: '/app/public/swagger.json'

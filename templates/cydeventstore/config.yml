@@ -1,0 +1,7 @@
+name: Event Store
+description: 
+version: 1.0
+category: database
+maintainer: Cydrick Nonog <cydrick.dev@gmail.com>
+license: MIT
+projectURL: https://github.com/cydrickn/event-store

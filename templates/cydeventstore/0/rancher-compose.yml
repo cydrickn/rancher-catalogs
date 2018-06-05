@@ -1,0 +1,50 @@
+version: 2
+catalog:
+    name: Event Store
+    version: 1.0
+    questions:
+        - variable: API_PORT
+          label: API Port
+          type: int
+          description: Map the port of api to host, leave blank if you dont want to map
+        - variable: SWAGGER_PORT
+          label: Swagger UI Port
+          description: Map the swagger port to host, leave blank if you dont want to map
+          type: int
+        - variable: EXPOSE_PROJECTOR_PORTS
+          label: Expose projector ports
+          type: boolean
+          default: true
+        - variable: PROJECTOR_PORT
+          label: Projector Port
+          description: Map the projector port to host, leave blank if you dont want to map
+          type: int
+        - variable: PROJECTOR_WAMP_PORT
+          label: Projector Wamp Port
+          description: Map the projector wamp port to host, leave blank if you dont want to map
+          type: int
+        - variable: USE_EXTERNAL_DB
+          label: Use External database
+          description: Instead creating new service for database, You can check this to use your existing database
+          default: false
+          type: boolean
+        - variable: DB_HOST
+          label: Database Host
+          description: Only use for external db
+          type: string
+        - variable: DB_USER
+          label: Database Username
+          description: Datbase user username
+          type: string
+        - variable: DB_PASSWORD
+          label: Database Password
+          description: Database user password
+          type: string
+        - variable: DB_ROOT_PASSWORD
+          label: Database Root Password
+          description: Root Password, Only use for internal database
+          type: string
+        - variable: DB_NAME
+          label: Database Name
+          description: Database Name
+          type: string
